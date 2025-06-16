@@ -1,10 +1,7 @@
 {
-  "name": "@sdziadkowiec/react-datasheet-grid",
+  "name": "react-datasheet-grid",
   "version": "4.12.2",
   "description": "An Excel-like React component to create beautiful spreadsheets.",
-  "publishConfig": {
-    "access": "public"
-  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -27,10 +24,7 @@
   ],
   "author": "Nicolas Keller (https://github.com/nick-keller)",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/sdziadkowiec/react-vibe-datasheet-grid.git"
-  },
+  "repository": "nick-keller/react-datasheet-grid",
   "homepage": "https://react-datasheet-grid.netlify.app/",
   "devDependencies": {
     "@jest/types": "^27.4.2",
