@@ -1,5 +1,5 @@
 import { defaultRangeExtractor, useVirtualizer } from '@tanstack/react-virtual'
-import React, { ReactNode, RefObject, useEffect } from 'react'
+import React, { ReactNode, RefObject, useEffect, useMemo } from 'react'
 import {
   Cell,
   Column,
@@ -18,6 +18,7 @@ export const Grid = <T extends any>({
   innerRef,
   columnWidths,
   hasStickyRightColumn,
+  frozenColumns = 0,
   displayHeight,
   headerRowHeight,
   rowHeight,
@@ -43,6 +44,7 @@ export const Grid = <T extends any>({
   innerRef: RefObject<HTMLDivElement | null>
   columnWidths?: number[]
   hasStickyRightColumn: boolean
+  frozenColumns: number
   displayHeight: number
   headerRowHeight: number
   rowHeight: (index: number) => { height: number }
@@ -62,6 +64,15 @@ export const Grid = <T extends any>({
   stopEditing: (opts?: { nextRow?: boolean }) => void
   onScroll?: React.UIEventHandler<HTMLDivElement>
 }) => {
+  const numFrozen = 1 + frozenColumns;
+  const fixedLefts = useMemo(() => {
+    const lefts = new Array(columns.length).fill(0);
+    for(let i = 1; i < lefts.length; i++){
+      lefts[i] = lefts[i-1] + (columnWidths?.[i-1] ?? 100);
+    }
+    return lefts;
+  }, [columns.length, columnWidths]);
+
   const rowVirtualizer = useVirtualizer({
     count: data.length,
     getScrollElement: () => outerRef.current,
@@ -96,17 +107,18 @@ export const Grid = <T extends any>({
     getItemKey: (index: number): React.Key => columns[index].id ?? index,
     overscan: 1,
     rangeExtractor: (range) => {
-      const result = defaultRangeExtractor(range)
-      if (result[0] !== 0) {
-        result.unshift(0)
+      let result = defaultRangeExtractor(range);
+      const added = [];
+      for(let i = 0; i < numFrozen; i++){
+        if(!result.includes(i)){
+          added.push(i);
+        }
       }
-      if (
-        hasStickyRightColumn &&
-        result[result.length - 1] !== columns.length - 1
-      ) {
-        result.push(columns.length - 1)
+      result = [...added, ...result];
+      if (hasStickyRightColumn && !result.includes(columns.length - 1)) {
+        result.push(columns.length - 1);
       }
-      return result
+      return result;
     },
   })
 
@@ -153,6 +165,7 @@ export const Grid = <T extends any>({
                 stickyRight={
                   hasStickyRightColumn && col.index === columns.length - 1
                 }
+                stickyLeft={col.index < numFrozen ? fixedLefts[col.index] : undefined}
                 width={col.size}
                 left={col.start}
                 className={cx(
@@ -218,6 +231,7 @@ export const Grid = <T extends any>({
                     stickyRight={
                       hasStickyRightColumn && col.index === columns.length - 1
                     }
+                    stickyLeft={col.index < numFrozen ? fixedLefts[col.index] : undefined}
                     active={col.index === 0 && rowActive}
                     disabled={cellDisabled}
                     className={cx(
