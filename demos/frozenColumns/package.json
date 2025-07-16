@@ -6,10 +6,7 @@
     "start": "webpack serve --mode=development",
     "build": "webpack --mode=production"
   },
-  "dependencies": {
-    "react": "file:../../node_modules/react",
-    "react-dom": "file:../../node_modules/react-dom"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@babel/core": "^7.22.0",
     "@babel/preset-env": "^7.22.0",

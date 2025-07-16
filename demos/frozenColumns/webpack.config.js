@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
 
@@ -6,6 +8,10 @@ module.exports = {
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
     symlinks: false,
+    alias: {
+      'react': path.resolve(__dirname, '../../node_modules/react'),
+      'react-dom': path.resolve(__dirname, '../../node_modules/react-dom'),
+    },
   },
   module: {
     rules: [
@@ -30,6 +36,7 @@ module.exports = {
     open: true,
     hot: true,
   },
+
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.js',
