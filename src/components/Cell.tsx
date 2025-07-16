@@ -10,7 +10,8 @@ export const Cell: FC<{
   active?: boolean
   children?: any
   width: number
-  left: number
+  left?: number
+  positionRelative?: boolean
 }> = ({
   children,
   gutter,
@@ -21,6 +22,7 @@ export const Cell: FC<{
   width,
   left,
   stickyLeft,
+  positionRelative,
 }) => {
   return (
     <div
@@ -36,6 +38,7 @@ export const Cell: FC<{
       style={{
         width,
         left: stickyLeft !== undefined ? stickyLeft : (stickyRight ? undefined : left),
+        ...(positionRelative ? { position: 'relative' } : {}),
       }}
     >
       {children}

@@ -73,6 +73,9 @@ export const Grid = <T extends any>({
     return lefts;
   }, [columns.length, columnWidths]);
 
+  const groupFrozen = numFrozen > 1;
+  const frozenWidth = groupFrozen ? fixedLefts[numFrozen - 1] + (columnWidths?.[numFrozen - 1] ?? 100) : 0;
+
   const rowVirtualizer = useVirtualizer({
     count: data.length,
     getScrollElement: () => outerRef.current,
@@ -158,31 +161,64 @@ export const Grid = <T extends any>({
               height: headerRowHeight,
             }}
           >
-            {colVirtualizer.getVirtualItems().map((col) => (
-              <CellComponent
-                key={col.key}
-                gutter={col.index === 0}
-                stickyRight={
-                  hasStickyRightColumn && col.index === columns.length - 1
-                }
-                stickyLeft={col.index < numFrozen ? fixedLefts[col.index] : undefined}
-                width={col.size}
-                left={col.start}
-                className={cx(
-                  'dsg-cell-header',
-                  selectionColMin !== undefined &&
-                    selectionColMax !== undefined &&
-                    selectionColMin <= col.index - 1 &&
-                    selectionColMax >= col.index - 1 &&
-                    'dsg-cell-header-active',
-                  columns[col.index].headerClassName
-                )}
+            {groupFrozen && (
+              <div
+                className={cx('dsg-frozen-header', 'dsg-cell-sticky-left')}
+                style={{ left: 0, width: frozenWidth, height: '100%', display: 'flex', flexDirection: 'row' }}
               >
-                <div className="dsg-cell-header-container">
-                  {columns[col.index].title}
-                </div>
-              </CellComponent>
-            ))}
+                {Array.from({ length: numFrozen }).map((_, i) => {
+                  const selected = selectionColMin !== undefined && selectionColMax !== undefined && selectionColMin <= i - 1 && selectionColMax >= i - 1;
+                  return (
+                    <CellComponent
+                      key={i}
+                      gutter={i === 0}
+                      stickyRight={false}
+                      stickyLeft={undefined}
+                      width={(columnWidths?.[i] ?? 100) as number}
+                      left={undefined}
+                      className={cx(
+                        'dsg-cell-header',
+                        selected && 'dsg-cell-header-active',
+                        columns[i].headerClassName
+                      )}
+                      positionRelative={true}
+                    >
+                      <div className="dsg-cell-header-container">
+                        {columns[i].title}
+                      </div>
+                    </CellComponent>
+                  );
+                })}
+              </div>
+            )}
+            {colVirtualizer.getVirtualItems().map((col) => {
+              if (groupFrozen && col.index < numFrozen) return null;
+              return (
+                <CellComponent
+                  key={col.key}
+                  gutter={col.index === 0}
+                  stickyRight={
+                    hasStickyRightColumn && col.index === columns.length - 1
+                  }
+                  stickyLeft={col.index < numFrozen ? fixedLefts[col.index] : undefined}
+                  width={col.size}
+                  left={col.start}
+                  className={cx(
+                    'dsg-cell-header',
+                    selectionColMin !== undefined &&
+                      selectionColMax !== undefined &&
+                      selectionColMin <= col.index - 1 &&
+                      selectionColMax >= col.index - 1 &&
+                      'dsg-cell-header-active',
+                    columns[col.index].headerClassName
+                  )}
+                >
+                  <div className="dsg-cell-header-container">
+                    {columns[col.index].title}
+                  </div>
+                </CellComponent>
+              );
+            })}
           </div>
         )}
         {rowVirtualizer.getVirtualItems().map((row) => {
@@ -209,7 +245,75 @@ export const Grid = <T extends any>({
                 width: fullWidth ? '100%' : colVirtualizer.getTotalSize(),
               }}
             >
+              {groupFrozen && (
+                <div
+                  className={cx('dsg-frozen-row', 'dsg-cell-sticky-left')}
+                  style={{ left: 0, width: frozenWidth, height: '100%', display: 'flex', flexDirection: 'row' }}
+                >
+                  {Array.from({ length: numFrozen }).map((_, i) => {
+                    const colCellClassName = columns[i].cellClassName;
+                    const disabled = columns[i].disabled;
+                    const Component = columns[i].component;
+                    const cellDisabled =
+                      disabled === true ||
+                      (typeof disabled === 'function' &&
+                        disabled({
+                          rowData: data[row.index],
+                          rowIndex: row.index,
+                        }));
+                    const cellIsActive =
+                      activeCell?.row === row.index &&
+                      activeCell.col === i - 1;
+                    return (
+                      <CellComponent
+                        key={i}
+                        gutter={i === 0}
+                        stickyRight={false}
+                        stickyLeft={undefined}
+                        active={i === 0 && rowActive}
+                        disabled={cellDisabled}
+                        className={cx(
+                          typeof colCellClassName === 'function'
+                            ? colCellClassName({
+                                rowData: data[row.index],
+                                rowIndex: row.index,
+                                columnId: columns[i].id,
+                              })
+                            : colCellClassName,
+                          typeof cellClassName === 'function'
+                            ? cellClassName({
+                                rowData: data[row.index],
+                                rowIndex: row.index,
+                                columnId: columns[i].id,
+                              })
+                            : cellClassName
+                        )}
+                        width={(columnWidths?.[i] ?? 100) as number}
+                        left={undefined}
+                        positionRelative={true}
+                      >
+                        <Component
+                          rowData={data[row.index]}
+                          getContextMenuItems={getContextMenuItems}
+                          disabled={cellDisabled}
+                          active={cellIsActive}
+                          columnIndex={i - 1}
+                          rowIndex={row.index}
+                          focus={cellIsActive && editing}
+                          deleteRow={deleteGivenRow(row.index)}
+                          duplicateRow={duplicateGivenRow(row.index)}
+                          stopEditing={stopEditing}
+                          insertRowBelow={insertAfterGivenRow(row.index)}
+                          setRowData={setGivenRowData(row.index)}
+                          columnData={columns[i].columnData}
+                        />
+                      </CellComponent>
+                    );
+                  })}
+                </div>
+              )}
               {colVirtualizer.getVirtualItems().map((col) => {
+                if (groupFrozen && col.index < numFrozen) return null;
                 const colCellClassName = columns[col.index].cellClassName
                 const disabled = columns[col.index].disabled
                 const Component = columns[col.index].component
