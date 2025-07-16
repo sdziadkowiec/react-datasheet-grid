@@ -1,5 +1,9 @@
 # Change Log
 
+## 4.13.1
+> Date: 2025-07-16
+- Fixed frozenColumns for multiple columns use case
+
 ## 4.13.0
 > Date: 2025-07-16
 - Added frozenColumns property on DataSheetGrid component to freeze X first column and make them non-scrollable
