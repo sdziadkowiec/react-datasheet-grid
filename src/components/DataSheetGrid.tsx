@@ -73,6 +73,7 @@ export const DataSheetGrid = React.memo(
         headerRowHeight = typeof rowHeight === 'number' ? rowHeight : 40,
         gutterColumn,
         stickyRightColumn,
+        frozenColumns = 0,
         rowKey,
         addRowsComponent: AddRowsComponent = AddRows as (props: AddRowsComponentProps) => React.ReactElement | null,
         createRow = DEFAULT_CREATE_ROW as () => T,
@@ -1910,6 +1911,7 @@ export const DataSheetGrid = React.memo(
           stopEditing={stopEditing}
           cellClassName={cellClassName}
           onScroll={onScroll}
+          frozenColumns={frozenColumns}
         >
           <SelectionRect
             columnRights={columnRights}

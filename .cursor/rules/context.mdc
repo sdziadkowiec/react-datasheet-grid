@@ -1,0 +1,7 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+This project is a React component library for building interactive data sheets with Excel-like experience.
+It is based on React 19.
